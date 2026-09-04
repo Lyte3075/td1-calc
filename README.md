@@ -14,3 +14,4 @@
 * **Correction Factor:** 1 unit per 40 mg/dL drop
 * **Carb Ratio:** 1 unit per 8 grams of carbs
 * **Rounding:** Default set to nearest 0.5 units (customizable in settings)
+
