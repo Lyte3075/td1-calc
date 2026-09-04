@@ -19,5 +19,5 @@
 
 Download the latest release directly from the [Releases Page](https://github.com/Lyte3075/td1-calc/releases/latest).
 
-* 🤖 **Android:** [Download `.apk`](https://github.com/Lyte3075/td1-calc/releases/latest/download/app-release.apk)
-* 🍎 **iOS:** [Download `.ipa`](https://github.com/Lyte3075/td1-calc/releases/latest/download/app-release.ipa) *(Ready for KSign / SideStore)*
+* 🤖 **Android:** [Download `.apk`](https://github.com/Lyte3075/td1-calc/releases/latest)
+* 🍎 **iOS:** [Download `.ipa`](https://github.com/Lyte3075/td1-calc/releases/latest) *(Ready for KSign / SideStore)*
