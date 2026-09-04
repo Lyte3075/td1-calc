@@ -1,6 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
+
+CupertinoThemeData getNativeTheme() {
+  return CupertinoThemeData(
+    textTheme: CupertinoTextThemeData(
+      textStyle: TextStyle(
+        // Uses native system font fallback depending on the device OS
+        fontFamilyFallback: Platform.isAndroid
+            ? const ['sans-serif', 'Noto Color Emoji']
+            : const ['.SF UI Text', 'Apple Color Emoji'],
+      ),
+    ),
+  );
+}
 
 void main() {
   runApp(const InsulinApp());
