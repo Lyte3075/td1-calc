@@ -31,6 +31,9 @@ jobs:
       - name: Generate Native Platform Folders
         run: flutter create . --platforms=android,ios --project-name=td1_calc
 
+      - name: Generate App Icons
+        run: flutter pub run flutter_launcher_icons
+
       - name: Build Android APK
         run: flutter build apk --release
 
