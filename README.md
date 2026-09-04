@@ -15,3 +15,9 @@
 * **Carb Ratio:** 1 unit per 8 grams of carbs
 * **Rounding:** Default set to nearest 0.5 units (customizable in settings)
 
+## 📥 Downloads
+
+Download the latest release directly from the [Releases Page](https://github.com/Lyte3075/td1-calc/releases/latest).
+
+* 🤖 **Android:** [Download `.apk`](https://github.com/Lyte3075/td1-calc/releases/latest/download/app-release.apk)
+* 🍎 **iOS:** [Download `.ipa`](https://github.com/Lyte3075/td1-calc/releases/latest/download/app-release.ipa) *(Ready for KSign / SideStore)*
