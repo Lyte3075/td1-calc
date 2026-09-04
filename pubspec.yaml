@@ -1,5 +1,5 @@
 name: td1_calc
-description: A calculator for insulin units.
+description: A simple Cupertino-styled calculator for Type 1 Diabetes math.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cupertino_icons: ^1.0.6
   shared_preferences: ^2.2.2
 
 dev_dependencies:
@@ -19,8 +20,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.png" # Change to your image path
+  image_path: "assets/icon/icon.png"
   remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/icon.png
