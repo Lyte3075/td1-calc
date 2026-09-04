@@ -5,13 +5,15 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 
 CupertinoThemeData getNativeTheme() {
-  return CupertinoThemeData(
+  return const CupertinoThemeData(
     textTheme: CupertinoTextThemeData(
       textStyle: TextStyle(
-        // Uses native system font fallback depending on the device OS
-        fontFamilyFallback: Platform.isAndroid
-            ? const ['sans-serif', 'Noto Color Emoji']
-            : const ['.SF UI Text', 'Apple Color Emoji'],
+        fontFamilyFallback: [
+          'Apple Color Emoji',     // iOS / macOS
+          'Noto Color Emoji',      // Android / Linux / ChromeOS
+          'Segoe UI Emoji',        // Windows
+          'Segoe UI Symbol',       // Windows fallback
+        ],
       ),
     ),
   );
