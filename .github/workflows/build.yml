@@ -34,8 +34,15 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release
 
-      - name: Build iOS IPA (Unsigned for Sideloading)
-        run: flutter build ipa --no-codesign
+      - name: Build iOS App Bundle
+        run: flutter build ios --release --no-codesign
+
+      - name: Package Unsigned IPA
+        run: |
+          mkdir -p build/ios/iphoneos/Payload
+          mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
+          cd build/ios/iphoneos
+          zip -r td1_calc.ipa Payload
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
@@ -47,4 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: iOS-IPA
-          path: build/ios/ipa/*.ipa
+          path: build/ios/iphoneos/td1_calc.ipa
