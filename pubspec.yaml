@@ -14,12 +14,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: "^0.13.1"
-
-flutter:
-  uses-material-design: true
+  flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/app_icon.png"
+  image_path: "assets/icon/icon.png" # Change to your image path
+  remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
