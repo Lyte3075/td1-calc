@@ -1,8 +1,8 @@
-name: Build iOS IPA
+name: Build Android APK and iOS IPA
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -13,23 +13,38 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Unsigned IPA
-        run: |
-          flutter build ios --release --no-codesign
-          mkdir -p Payload
-          mv build/ios/iphoneos/Runner.app Payload/
-          zip -r Runner.ipa Payload
+      - name: Generate App Icons
+        run: flutter pub run flutter_launcher_icons
 
-      - name: Upload IPA Artifact
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Build iOS IPA (Unsigned for Sideloading)
+        run: flutter build ipa --no-codesign
+
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Runner-IPA
-          path: Runner.ipa
+          name: Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-IPA
+          path: build/ios/ipa/*.ipa
