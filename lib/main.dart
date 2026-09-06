@@ -242,12 +242,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return sum;
   }
 
-  String _getFormattedTime() {
+  String _getFormattedDateTime() {
     final now = DateTime.now();
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final month = months[now.month - 1];
+    final day = now.day;
     final hour = now.hour % 12 == 0 ? 12 : now.hour % 12;
     final minute = now.minute.toString().padLeft(2, '0');
     final period = now.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
+    return '$month $day, $hour:$minute $period';
   }
 
   void _calculateDose() {
@@ -294,7 +300,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _logs.insert(
           0,
           LogEntry(
-            timestamp: _getFormattedTime(),
+            timestamp: _getFormattedDateTime(),
             dose: _displayTotalDose,
             bg: bg,
             carbs: carbs,
@@ -599,7 +605,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             children: [
                               Text(
                                 log.timestamp,
-                                style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               Text(
                                 '${log.bg.toStringAsFixed(0)} mg/dL | ${log.carbs.toStringAsFixed(0)}g',
