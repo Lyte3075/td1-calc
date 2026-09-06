@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 
 CupertinoThemeData getNativeTheme() {
   return const CupertinoThemeData(
@@ -21,6 +20,34 @@ CupertinoThemeData getNativeTheme() {
 
 void main() {
   runApp(const InsulinApp());
+}
+
+class LogEntry {
+  final String timestamp;
+  final double dose;
+  final double bg;
+  final double carbs;
+
+  LogEntry({
+    required this.timestamp,
+    required this.dose,
+    required this.bg,
+    required this.carbs,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'timestamp': timestamp,
+    'dose': dose,
+    'bg': bg,
+    'carbs': carbs,
+  };
+
+  factory LogEntry.fromJson(Map<String, dynamic> json) => LogEntry(
+    timestamp: json['timestamp'] ?? '',
+    dose: (json['dose'] as num).toDouble(),
+    bg: (json['bg'] as num).toDouble(),
+    carbs: (json['carbs'] as num).toDouble(),
+  );
 }
 
 class InsulinApp extends StatefulWidget {
@@ -107,6 +134,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double _displayTotalDose = 0.0;
   double _totalCarbsSum = 0.0;
 
+  List<LogEntry> _logs = [];
+
   static const Color primaryCoral = Color(0xFFFF3B30);
   static const Color secondaryOrange = Color(0xFFFF9500);
 
@@ -129,7 +158,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       _correctionFactorController.text = prefs.getString('savedCorrectionFactor') ?? '40';
       _roundingSegment = prefs.getInt('savedRoundingSegment') ?? 1;
       _showTips = prefs.getBool('showAppTips') ?? true;
+
+      final String? logsRaw = prefs.getString('savedLogs');
+      if (logsRaw != null) {
+        final List<dynamic> decoded = jsonDecode(logsRaw);
+        _logs = decoded.map((item) => LogEntry.fromJson(item)).toList();
+      }
     });
+  }
+
+  Future<void> _saveLogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_logs.map((e) => e.toJson()).toList());
+    await prefs.setString('savedLogs', encoded);
   }
 
   Future<void> _saveSetting(String key, dynamic value) async {
@@ -201,6 +242,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return sum;
   }
 
+  String _getFormattedTime() {
+    final now = DateTime.now();
+    final hour = now.hour % 12 == 0 ? 12 : now.hour % 12;
+    final minute = now.minute.toString().padLeft(2, '0');
+    final period = now.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
+
   void _calculateDose() {
     final String bgText = _bgController.text.trim();
     final String carbText = _carbController.text.trim();
@@ -240,7 +289,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
       _rawTotalDose = _correctionDose + _carbDose;
       _displayTotalDose = _applyRounding(_rawTotalDose);
+
+      if (_displayTotalDose > 0 || bg > 0 || carbs > 0) {
+        _logs.insert(
+          0,
+          LogEntry(
+            timestamp: _getFormattedTime(),
+            dose: _displayTotalDose,
+            bg: bg,
+            carbs: carbs,
+          ),
+        );
+        _saveLogs();
+      }
     });
+  }
+
+  void _clearLogs() {
+    setState(() {
+      _logs.clear();
+    });
+    _saveLogs();
   }
 
   Widget _buildIOSCard({required List<Widget> children}) {
@@ -297,6 +366,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDarkMode;
+
+    double totalDosesLogged = _logs.fold(0.0, (sum, item) => sum + item.dose);
+    double avgBgLogged = _logs.isEmpty
+        ? 0.0
+        : _logs.map((e) => e.bg).where((b) => b > 0).fold(0.0, (a, b) => a + b) /
+            (_logs.where((e) => e.bg > 0).isEmpty ? 1 : _logs.where((e) => e.bg > 0).length);
 
     return Scaffold(
       appBar: AppBar(
@@ -441,6 +516,106 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     ],
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // LOGS & STATS SECTION
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 12, bottom: 6),
+                  child: Text(
+                    'CALCULATION LOG & STATS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                if (_logs.isNotEmpty)
+                  GestureDetector(
+                    onTap: _clearLogs,
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 12, bottom: 6),
+                      child: Text(
+                        'Clear Log',
+                        style: TextStyle(fontSize: 12, color: primaryCoral),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            _buildIOSCard(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Column(
+                        children: [
+                          const Text('Total Logged', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 4),
+                          Text('${_logs.length}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      Container(height: 20, width: 1, color: isDark ? Colors.white10 : Colors.black12),
+                      Column(
+                        children: [
+                          const Text('Total Insulin', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 4),
+                          Text('${totalDosesLogged.toStringAsFixed(1)} u', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: secondaryOrange)),
+                        ],
+                      ),
+                      Container(height: 20, width: 1, color: isDark ? Colors.white10 : Colors.black12),
+                      Column(
+                        children: [
+                          const Text('Avg BG', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 4),
+                          Text(avgBgLogged == 0 ? '--' : '${avgBgLogged.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryCoral)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (_logs.isNotEmpty) ...[
+                  Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 180),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _logs.length,
+                      separatorBuilder: (context, index) => Divider(height: 1, indent: 16, color: isDark ? Colors.white10 : Colors.black12),
+                      itemBuilder: (context, index) {
+                        final log = _logs[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                log.timestamp,
+                                style: const TextStyle(fontSize: 13, color: Colors.grey),
+                              ),
+                              Text(
+                                '${log.bg.toStringAsFixed(0)} mg/dL | ${log.carbs.toStringAsFixed(0)}g',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              Text(
+                                '${log.dose.toStringAsFixed(1)} u',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: secondaryOrange),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 16),
